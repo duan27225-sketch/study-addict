@@ -1,0 +1,8 @@
+{
+  "appId": "com.artstudent.exam",
+  "appName": "美术生文化课特训",
+  "webDir": "static",
+  "server": {
+    "androidScheme": "https"
+  }
+}

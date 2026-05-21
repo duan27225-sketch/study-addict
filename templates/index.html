@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#E87A3E">
+<link rel="apple-touch-icon" href="/static/icon-192.png">
+<title>美术生文化课特训</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,PingFang SC,Microsoft YaHei,sans-serif;background:#0a0a1a;color:#e0e0e0;min-height:100vh;overflow-x:hidden}
+/* Toast */
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);z-index:9998;background:#2d2d5e;color:#fff;padding:10px 24px;border-radius:20px;font-size:0.9em;opacity:0;transition:opacity 0.3s;pointer-events:none}
+#toast.show{opacity:1}
+/* Register */
+#register-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+#register-screen h1{font-size:2.5em;margin-bottom:8px;background:linear-gradient(135deg,#E87A3E,#F0A830);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+#register-screen p{color:#888;margin-bottom:20px}
+#register-screen input{width:100%;max-width:300px;padding:14px 20px;border-radius:12px;border:2px solid #2d2d5e;background:#1a1a2e;color:#fff;font-size:1.1em;text-align:center;margin:12px 0}
+#register-screen button{width:100%;max-width:300px;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#E87A3E,#F0A830);color:#fff;font-size:1.1em;font-weight:bold;cursor:pointer}
+#register-screen button:active{transform:scale(0.97)}
+/* Main */
+#main-app{display:none;max-width:600px;margin:0 auto;padding:0 0 80px}
+.header{position:sticky;top:0;z-index:100;background:rgba(10,10,26,0.95);backdrop-filter:blur(10px);padding:12px 16px;border-bottom:1px solid #1e1e3a}
+.header-top{display:flex;align-items:center;justify-content:space-between}
+.user-info{display:flex;align-items:center;gap:10px}
+.avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#E87A3E,#F0A830);display:flex;align-items:center;justify-content:center;font-size:1.2em}
+.level-badge{background:#2d2d5e;padding:3px 10px;border-radius:10px;font-size:0.75em;color:#F0A830}
+.xp-bar-wrap{height:6px;background:#1e1e3a;border-radius:3px;margin-top:8px;overflow:hidden}
+.xp-bar-fill{height:100%;background:linear-gradient(90deg,#E87A3E,#F0A830);border-radius:3px;transition:width 0.5s}
+.stats-row{display:flex;gap:16px;margin-top:6px;font-size:0.75em;color:#888}
+.streak-badge{color:#f39c12;font-weight:bold}
+/* Tabs */
+.tab-nav{display:flex;gap:4px;padding:8px 16px;overflow-x:auto}
+.tab-btn{padding:8px 16px;border-radius:20px;border:1px solid #2d2d5e;background:transparent;color:#888;font-size:0.85em;white-space:nowrap;cursor:pointer;transition:all 0.2s}
+.tab-btn.active{background:#E87A3E;color:#fff;border-color:#E87A3E}
+.tab-panel{display:none;padding:12px 16px}
+.tab-panel.active{display:block}
+/* Subjects */
+.subject-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.subject-card{padding:16px;border-radius:14px;border:1px solid #2d2d5e;background:#1a1a2e;cursor:pointer;transition:all 0.2s}
+.subject-card:active{transform:scale(0.97)}
+.subject-card .icon{font-size:2em;margin-bottom:4px}
+.subject-card .name{font-weight:bold;font-size:1.1em}
+.subject-card .count{font-size:0.75em;color:#888}
+/* KP list */
+.kp-list{display:flex;flex-direction:column;gap:8px}
+.kp-item{padding:14px;border-radius:12px;border:1px solid #2d2d5e;background:#1a1a2e;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all 0.2s}
+.kp-item:active{transform:scale(0.98)}
+.kp-progress{height:4px;background:#1e1e3a;border-radius:2px;margin-top:6px}
+.kp-progress-fill{height:100%;border-radius:2px;transition:width 0.3s}
+.kp-progress-fill.low{background:#e74c3c}
+.kp-progress-fill.mid{background:#f39c12}
+.kp-progress-fill.high{background:#2ecc71}
+.kp-progress-fill.done{background:#E87A3E}
+/* Quiz */
+.quiz-card{background:#1a1a2e;border-radius:16px;border:1px solid #2d2d5e;padding:20px;margin:12px 0}
+.quiz-header{display:flex;justify-content:space-between;margin-bottom:12px;font-size:0.8em;color:#888}
+.quiz-question{font-size:1.15em;line-height:1.6;margin-bottom:16px}
+.option-btn{display:block;width:100%;padding:14px 16px;margin:8px 0;border-radius:12px;border:2px solid #2d2d5e;background:#1a1a2e;color:#e0e0e0;font-size:1em;text-align:left;cursor:pointer;transition:all 0.15s}
+.option-btn:active{transform:scale(0.98)}
+.option-btn .opt-label{display:inline-block;width:28px;height:28px;line-height:28px;text-align:center;border-radius:50%;background:#2d2d5e;color:#F0A830;font-weight:bold;font-size:0.85em;margin-right:10px}
+.option-btn.selected{border-color:#E87A3E;background:rgba(232,122,62,0.15)}
+.option-btn.correct{border-color:#2ecc71!important;background:rgba(46,204,113,0.15)!important}
+.option-btn.wrong{border-color:#e74c3c!important;background:rgba(231,76,60,0.15)!important}
+.option-btn.correct .opt-label{background:#2ecc71;color:#fff}
+.option-btn.wrong .opt-label{background:#e74c3c;color:#fff}
+.option-btn:disabled{pointer-events:none;opacity:0.7}
+.quiz-feedback{text-align:center;padding:12px;margin-top:8px;border-radius:10px;font-weight:bold;animation:fadeIn 0.3s}
+.quiz-feedback.correct{background:rgba(46,204,113,0.15);color:#2ecc71}
+.quiz-feedback.wrong{background:rgba(231,76,60,0.15);color:#e74c3c}
+/* Buttons */
+.btn{padding:12px 24px;border-radius:10px;border:none;font-size:0.95em;font-weight:bold;cursor:pointer;transition:all 0.2s}
+.btn:active{transform:scale(0.96)}
+.btn-primary{background:linear-gradient(135deg,#E87A3E,#F0A830);color:#fff;width:100%}
+.btn-secondary{background:#2d2d5e;color:#fff;margin-top:8px;width:100%}
+/* Popups */
+.xp-popup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#1a1a2e;border:2px solid #E87A3E;border-radius:20px;padding:24px;text-align:center;z-index:200;animation:popIn 0.4s}
+.xp-popup .xp-num{font-size:3em;font-weight:bold;background:linear-gradient(135deg,#f39c12,#fd79a8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.level-up-anim{animation:levelUp 0.6s}
+/* Leaderboard */
+.lb-row{display:flex;align-items:center;gap:12px;padding:12px;border-bottom:1px solid #1e1e3a}
+.lb-rank{font-size:1.3em;font-weight:bold;width:30px;text-align:center}
+.lb-rank.gold{color:#f39c12}.lb-rank.silver{color:#bdc3c7}.lb-rank.bronze{color:#e67e22}
+.lb-info{flex:1}
+.lb-name{font-weight:bold}.lb-sub{font-size:0.75em;color:#888}
+.lb-xp{color:#E87A3E;font-weight:bold}
+/* Animations */
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:translate(-50%,-50%) scale(0.5)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@keyframes levelUp{0%{transform:scale(1)}50%{transform:scale(1.3)}100%{transform:scale(1)}}
+@keyframes comboShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.combo-active{animation:comboShake 0.3s}
+.spark{position:fixed;pointer-events:none;z-index:300;font-size:1.5em;animation:sparkUp 1s forwards}
+@keyframes sparkUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-80px) scale(0.5)}}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+<div id="register-screen">
+<h1>🎨 美术生文化课</h1>
+<p>艺术生专属 · 文化课提分神器</p>
+<input id="reg-name" placeholder="取个霸气昵称" maxlength="20" autocomplete="off">
+<button onclick="register()">🎯 开始特训</button>
+</div>
+
+<div id="main-app">
+<div class="header">
+  <div class="header-top">
+    <div class="user-info">
+      <div class="avatar" id="user-avatar">🐱</div>
+      <div>
+        <div id="user-name" style="font-weight:bold"></div>
+        <div class="level-badge" id="user-level"></div>
+      </div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-weight:bold;color:#6c5ce7" id="user-xp">0 XP</div>
+      <div class="stats-row">
+        <span class="streak-badge" id="streak-display">🔥 0天</span>
+        <span id="accuracy-display">🎯 0%</span>
+      </div>
+    </div>
+  </div>
+  <div class="xp-bar-wrap"><div class="xp-bar-fill" id="xp-bar"></div></div>
+</div>
+
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchPanel('kp')">📖 知识点</button>
+  <button class="tab-btn" onclick="switchPanel('subjects')">🎯 科目</button>
+  <button class="tab-btn" onclick="switchPanel('leaderboard')">🏆 排行</button>
+</div>
+
+<div class="tab-panel active" id="panel-kp">
+  <div id="kp-list" class="kp-list"></div>
+</div>
+<div class="tab-panel" id="panel-subjects">
+  <div id="subject-grid" class="subject-grid"></div>
+  <div id="sub-kp-list" class="kp-list" style="margin-top:12px;display:none"></div>
+</div>
+<div class="tab-panel" id="panel-leaderboard">
+  <div id="lb-list"></div>
+</div>
+
+<div id="quiz-area" style="display:none;padding:10px"></div>
+</div>
+
+<script>
+// ── Data ──
+let DATA = null;
+let USER = null;
+let currentPanel = 'kp';
+let currentSubject = null;
+let questions = [];
+let qIndex = 0;
+
+// ── Constants (keep in sync with app.py) ──
+const LEVEL_THRESHOLDS = [0,100,250,500,850,1300,1900,2700,3800,5200,7000,9200,12000,15500,20000,26000,34000,44000,57000,73000];
+const LEVEL_NAMES = ["种子","萌芽","学徒","书虫","学霸候选","小学霸","大学霸","学神预备","学神","考神","状元","文曲星","翰林","祭酒","太傅","帝师","至圣先师","万世师表","学之极境","逆天改命"];
+const SUBJECT_NAMES = {1:'语文',2:'数学',3:'英语',4:'政治',5:'历史',6:'地理'};
+const AVATARS = ['🐱','🐶','🐼','🦊','🐰','🐨','🐯','🦁','🐸','🐵'];
+
+// ── localStorage keys ──
+const LS_PREFIX = 'study_';
+function lsGet(key, def=null) {
+  try { return JSON.parse(localStorage.getItem(LS_PREFIX+key)) ?? def; } catch { return def; }
+}
+function lsSet(key, val) {
+  localStorage.setItem(LS_PREFIX+key, JSON.stringify(val));
+}
+function lsRemove(key) {
+  localStorage.removeItem(LS_PREFIX+key);
+}
+
+// ── Toast ──
+let toastTimer;
+function showToast(msg, dur=2500){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), dur);
+}
+
+// ── Level calc ──
+function calcLevel(xp){
+  for(let i=0; i<LEVEL_THRESHOLDS.length; i++){
+    if(xp < LEVEL_THRESHOLDS[i]) return [i, LEVEL_NAMES[i-1]||LEVEL_NAMES[0]];
+  }
+  return [LEVEL_THRESHOLDS.length, LEVEL_NAMES[LEVEL_NAMES.length-1]];
+}
+function calcXp(diff, streak, correct){
+  if(!correct) return 0;
+  return ({1:10,2:20,3:35}[diff]||10) + Math.min(streak,10)*2;
+}
+
+// ── Register / Login ──
+function register(){
+  const name = document.getElementById('reg-name').value.trim();
+  if(!name) return alert('取个昵称');
+  let users = lsGet('users', {});
+  if(users[name]){
+    USER = users[name];
+  } else {
+    const ids = Object.values(users).length;
+    USER = {
+      id: ids + 1, username: name, xp: 0, level: 1,
+      streak: 0, max_streak: 0, last_active: null,
+      total_correct: 0, total_attempts: 0,
+      kp_progress: {}
+    };
+    users[name] = USER;
+  }
+  USER = users[name];
+  lsSet('users', users);
+  lsSet('current_user', name);
+  document.getElementById('register-screen').style.display='none';
+  document.getElementById('main-app').style.display='block';
+  loadMe(); loadKP();
+}
+
+// ── Load user display ──
+function loadMe(){
+  if(!USER) return;
+  const m = USER;
+  const [lv, ln] = calcLevel(m.xp);
+  m.level = lv;
+  const pct = m.total_attempts>0 ? Math.round(m.total_correct/m.total_attempts*100) : 0;
+  document.getElementById('user-name').textContent = m.username;
+  document.getElementById('user-level').textContent = `Lv${lv} ${ln}`;
+  document.getElementById('user-xp').textContent = m.xp+' XP';
+  document.getElementById('streak-display').textContent = '🔥 '+m.streak+'天';
+  document.getElementById('accuracy-display').textContent = '🎯 '+pct+'%';
+  const xpBar = document.getElementById('xp-bar');
+  if(lv < LEVEL_THRESHOLDS.length){
+    const range = LEVEL_THRESHOLDS[lv] - LEVEL_THRESHOLDS[lv-1];
+    const p = Math.min(100, Math.round((m.xp - LEVEL_THRESHOLDS[lv-1])/range*100));
+    xpBar.style.width = p+'%';
+  }
+  document.getElementById('user-avatar').textContent = AVATARS[(m.id||1) % AVATARS.length];
+}
+
+// ── Panel switch ──
+function switchPanel(name){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  document.getElementById('quiz-area').style.display='none';
+  currentPanel = name;
+  if(name==='subjects') loadSubjects();
+  if(name==='kp') loadKP();
+  if(name==='leaderboard') loadLeaderboard();
+}
+
+// ── Subjects ──
+function loadSubjects(){
+  if(!DATA) return;
+  const html = DATA.subjects.map(s => {
+    const count = DATA.knowledge_points.filter(k => k.subject_id === s.id).length;
+    return `<div class="subject-card" onclick="loadKP(${s.id});currentSubject=${s.id}" style="border-left:3px solid ${s.color}">
+      <div class="icon">${s.icon}</div>
+      <div class="name">${s.name}</div>
+      <div class="count">${count} 个知识点</div>
+    </div>`;
+  }).join('');
+  document.getElementById('subject-grid').innerHTML = html;
+}
+
+// ── Knowledge Points ──
+function loadKP(subjectId){
+  if(!DATA) return;
+  let kps = DATA.knowledge_points;
+  if(subjectId) kps = kps.filter(k => k.subject_id === subjectId);
+  const progress = USER ? (USER.kp_progress||{}) : {};
+  const html = kps.map(k => {
+    const p = progress[k.id] || {correct:0,total:0,mastery:0};
+    const mastery = Math.round(p.mastery);
+    const color = mastery>=90?'done':mastery>=60?'high':mastery>=30?'mid':'low';
+    return `<div class="kp-item" onclick="startQuizKP(${k.id},'${k.subject_name} - ${k.name}')" style="border-left:3px solid ${k.color}">
+      <div style="flex:1">
+        <div style="font-weight:bold;font-size:0.9em">${k.subject_name} · ${k.unit||''}</div>
+        <div style="margin-top:2px">${k.name}</div>
+        <div class="kp-progress"><div class="kp-progress-fill ${color}" style="width:${mastery}%"></div></div>
+        <div style="font-size:0.7em;color:#888;margin-top:2px">${k.question_count||0}题 | 掌握 ${mastery}%</div>
+      </div>
+      <div style="font-size:1.5em;color:${k.color}">${k.icon||'📖'}</div>
+    </div>`;
+  }).join('');
+  if(subjectId){
+    document.getElementById('sub-kp-list').style.display='block';
+    document.getElementById('sub-kp-list').innerHTML = html;
+    document.getElementById('sub-kp-list').scrollIntoView({behavior:'smooth'});
+    currentSubject = subjectId;
+  } else {
+    document.getElementById('kp-list').innerHTML = html;
+  }
+}
+
+// ── Shuffle ──
+function shuffle(arr){
+  for(let i=arr.length-1; i>0; i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// ── Quiz ──
+function startQuizKP(kpId, title){
+  if(!DATA) return;
+  currentKP = kpId;
+  questions = shuffle(DATA.questions.filter(q => q.kp_id === kpId));
+  qIndex = 0;
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('quiz-area').style.display='block';
+  renderQuiz(title);
+}
+
+function startRandomQuiz(){
+  if(!DATA) return;
+  const sid = currentSubject || (Math.ceil(Math.random()*6));
+  questions = shuffle(DATA.questions.filter(q => q.subject_id === sid));
+  qIndex = 0;
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('quiz-area').style.display='block';
+  renderQuiz(SUBJECT_NAMES[sid]+' 随机练习');
+}
+
+function renderQuiz(title){
+  if(qIndex >= questions.length){
+    document.getElementById('quiz-area').innerHTML = `<div style="text-align:center;padding:40px">
+      <div style="font-size:4em">🎉</div>
+      <h3>本轮完成！</h3>
+      <button class="btn btn-primary" style="margin-top:16px" onclick="startRandomQuiz()">🔄 再来一轮</button>
+      <button class="btn btn-secondary" onclick="switchPanel('kp')">📖 回知识点</button>
+    </div>`;
+    loadMe();
+    return;
+  }
+  const q = questions[qIndex];
+  const opts = [
+    {label:'A', text:q.option_a}, {label:'B', text:q.option_b},
+    {label:'C', text:q.option_c}, {label:'D', text:q.option_d}
+  ];
+  document.getElementById('quiz-area').innerHTML = `
+    <div style="padding:8px 0;color:#888;font-size:0.85em">${title} · ${qIndex+1}/${questions.length}</div>
+    <div class="quiz-card">
+      <div class="quiz-header">
+        <span style="color:#6c5ce7">${q.subject_name} · ${q.kp_name||''}</span>
+        <span>${q.difficulty==1?'⭐':q.difficulty==2?'⭐⭐':'⭐⭐⭐'}</span>
+      </div>
+      <div class="quiz-question">${q.question_text}</div>
+      ${q.hint ? `<div style="font-size:0.8em;color:#888;margin-bottom:8px">💡 ${q.hint}</div>` : ''}
+      ${opts.map(o => `<button class="option-btn" onclick="submitChoice('${o.label}')">
+        <span class="opt-label">${o.label}</span>${o.text}
+      </button>`).join('')}
+      <div id="quiz-feedback"></div>
+    </div>
+  `;
+}
+
+function submitChoice(choice){
+  const btns = document.querySelectorAll('.option-btn');
+  btns.forEach(b=>{b.disabled=true;if(b.textContent.trim().startsWith(choice))b.classList.add('selected')});
+  const q = questions[qIndex];
+  const correct = (choice === q.correct_option.trim().toUpperCase());
+  const today = new Date().toISOString().slice(0,10);
+
+  // Calculate streak
+  let streak = USER.streak;
+  if(USER.last_active){
+    const last = USER.last_active;
+    const yesterday = new Date(Date.now()-86400000).toISOString().slice(0,10);
+    if(last === yesterday) streak = correct ? streak+1 : streak;
+    else if(last !== today) streak = correct ? 1 : 0;
+  } else {
+    streak = correct ? 1 : 0;
+  }
+  USER.max_streak = Math.max(USER.max_streak||0, streak);
+  USER.streak = streak;
+
+  // XP
+  const xpEarned = calcXp(q.difficulty, streak, correct);
+  USER.xp = (USER.xp||0) + xpEarned;
+  USER.total_attempts = (USER.total_attempts||0) + 1;
+  if(correct) USER.total_correct = (USER.total_correct||0) + 1;
+  USER.last_active = today;
+
+  // KP progress
+  if(!USER.kp_progress) USER.kp_progress = {};
+  if(!USER.kp_progress[q.kp_id]) USER.kp_progress[q.kp_id] = {correct:0,total:0,mastery:0};
+  const kp = USER.kp_progress[q.kp_id];
+  kp.total++;
+  if(correct) kp.correct++;
+  kp.mastery = Math.round(kp.correct / kp.total * 100);
+
+  // Save
+  const users = lsGet('users', {});
+  users[USER.username] = USER;
+  lsSet('users', users);
+
+  // UI feedback
+  btns.forEach(b=>{
+    const label = b.querySelector('.opt-label').textContent;
+    if(label === q.correct_option) b.classList.add('correct');
+    if(label === choice && !correct) b.classList.add('wrong');
+  });
+  const fb = document.getElementById('quiz-feedback');
+  const [oldLv] = calcLevel(USER.xp - xpEarned);
+  const [newLv] = calcLevel(USER.xp);
+  fb.className = 'quiz-feedback '+(correct?'correct':'wrong');
+  fb.innerHTML = correct
+    ? `✅ 正确！+${xpEarned}XP ${newLv>oldLv?'🎊升级!':''}`
+    : `❌ 正确答案是 ${q.correct_option}. ${q['option_'+q.correct_option.toLowerCase()]}`;
+  if(correct && streak>=3) spawnSpark(streak);
+  if(newLv>oldLv) showXPPopup(xpEarned, true);
+  loadMe();
+  setTimeout(()=>{
+    qIndex++;
+    renderQuiz(document.querySelector('#quiz-area > div:first-child').textContent.split('·')[0].trim());
+  }, correct?800:2000);
+}
+
+function showXPPopup(xp, levelUp){
+  const p = document.createElement('div');
+  p.className = 'xp-popup'+(levelUp?' level-up-anim':'');
+  p.innerHTML = `<div class="xp-num">+${xp} XP</div><div style="color:#fff;margin-top:8px">${levelUp?'🎊 升级了！':'继续加油！'}</div>`;
+  document.body.appendChild(p);
+  setTimeout(()=>p.remove(), 1500);
+}
+
+function spawnSpark(){
+  for(let i=0;i<3;i++){
+    const s = document.createElement('div'); s.className = 'spark';
+    s.textContent = ['✨','💫','⭐','🔥','💪'][Math.floor(Math.random()*5)];
+    s.style.left = (40+Math.random()*20)+'%'; s.style.top = '50%';
+    document.body.appendChild(s);
+    setTimeout(()=>s.remove(), 1000);
+  }
+}
+
+// ── Leaderboard (local only) ──
+function loadLeaderboard(){
+  const users = lsGet('users', {});
+  const sorted = Object.values(users).sort((a,b) => (b.xp||0) - (a.xp||0));
+  const html = sorted.map((r,i)=>{
+    const rank = i+1;
+    const [lv] = calcLevel(r.xp);
+    const pct = r.total_attempts>0 ? Math.round(r.total_correct/r.total_attempts*100) : 0;
+    const rc = rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';
+    return `<div class="lb-row">
+      <div class="lb-rank ${rc}">${rank<=3?['🥇','🥈','🥉'][rank-1]:rank}</div>
+      <div class="lb-info">
+        <div class="lb-name">${r.username}</div>
+        <div class="lb-sub">Lv${lv} · 正确${r.total_correct||0}题 · 准确率${pct}%</div>
+      </div>
+      <div class="lb-xp">${r.xp||0} XP</div>
+    </div>`;
+  }).join('');
+  document.getElementById('lb-list').innerHTML = html;
+}
+
+// ── Init ──
+(async function(){
+  try {
+    const r = await fetch('/static/offline-data.json');
+    DATA = await r.json();
+    DATA.questions = DATA.questions || [];
+    DATA.knowledge_points = DATA.knowledge_points || [];
+    DATA.subjects = DATA.subjects || [];
+  } catch(e) {
+    showToast('⚠️ 题库加载失败', 5000);
+    return;
+  }
+  const name = lsGet('current_user', '');
+  if(name){
+    const users = lsGet('users', {});
+    if(users[name]){
+      USER = users[name];
+      document.getElementById('register-screen').style.display='none';
+      document.getElementById('main-app').style.display='block';
+      loadMe(); loadKP();
+    }
+  }
+})();
+</script>
+</body>
+</html>

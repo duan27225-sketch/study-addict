@@ -1,0 +1,27 @@
+{
+  "name": "美术生文化课特训",
+  "short_name": "美术特训",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "description": "美术生专属文化课刷题 — 语数外政史地，艺术生分数线适配",
+  "categories": ["education"],
+  "background_color": "#0a0a1a",
+  "theme_color": "#E87A3E",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/static/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

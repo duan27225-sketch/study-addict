@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Database (user data)
+*.db
+
+# Session
+.session_key
+
+# Build output
+android/
+*.apk
+
+# IDE
+.vscode/
+.idea/
