@@ -159,7 +159,7 @@ let qIndex = 0;
 
 // ── Constants (keep in sync with app.py) ──
 const LEVEL_THRESHOLDS = [0,100,250,500,850,1300,1900,2700,3800,5200,7000,9200,12000,15500,20000,26000,34000,44000,57000,73000];
-const LEVEL_NAMES = ["种子","萌芽","学徒","书虫","学霸候选","小学霸","大学霸","学神预备","学神","考神","状元","文曲星","翰林","祭酒","太傅","帝师","至圣先师","万世师表","学之极境","逆天改命"];
+const LEVEL_NAMES = ["铅笔","画板","调色盘","素描","水粉","油画","创作","个展","画廊","收藏家","艺术顾问","策展人","博物馆","艺术节","双年展","威尼斯","文艺复兴","印象派","现代艺术","艺术大师"];
 const SUBJECT_NAMES = {1:'语文',2:'数学',3:'英语',4:'政治',5:'历史',6:'地理'};
 const AVATARS = ['🐱','🐶','🐼','🦊','🐰','🐨','🐯','🦁','🐸','🐵'];
 
@@ -465,7 +465,7 @@ function loadLeaderboard(){
 // ── Init ──
 (async function(){
   try {
-    const r = await fetch('/static/offline-data.json');
+    const r = await fetch('offline-data.json');
     DATA = await r.json();
     DATA.questions = DATA.questions || [];
     DATA.knowledge_points = DATA.knowledge_points || [];
